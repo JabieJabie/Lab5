@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Checkout - V2</title>
+<style>
+       body { font-family: sans-serif; background-color: #f4f7f6; padding: 20px; display: flex; justify-content: center;}
+       /* FIX: Fluid container for mobile screens */
+       .container { background: white; padding: 30px; width: 100%; max-width: 600px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 8px;}
+       .step-indicators { display: flex; justify-content: space-between; margin-bottom: 20px; color: #666; font-size: 14px; }
+       .step { display: none; }
+       .step.active-step { display: block; }
+       .form-group { margin-bottom: 15px; }
+       .form-group label { display: block; margin-bottom: 5px; font-weight: bold;}
+       /* FIX: box-sizing added to keep inputs inside parent container */
+       .form-group input { padding: 10px; width: 100%; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;}
+       .buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+       button { padding: 10px 20px; background-color: #2e7d32; color: white; border: none; cursor: pointer; border-radius: 4px; }
+       #prevBtn { background-color: #999; display: none; }
+       #nextBtn { margin-left: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+<h2>Secure Checkout</h2>
+<!-- FLAW: Still no active state for these indicators -->
+<div class="step-indicators">
+<span id="ind-0">1. Patient Details</span>
+<span id="ind-1">2. Shipping Address</span>
+<span id="ind-2">3. Payment Information</span>
+</div>
+<form id="checkoutForm">
+<div class="step active-step">
+<div class="form-group"><label>First Name</label><input type="text" required></div>
+<div class="form-group"><label>Last Name</label><input type="text" required></div>
+</div>
+<div class="step">
+<div class="form-group"><label>Street Address</label><input type="text" required></div>
+<div class="form-group"><label>City</label><input type="text" required></div>
+</div>
+<div class="step">
+<div class="form-group"><label>Card Number</label><input type="text" required></div>
+<div class="form-group"><label>Expiry Date</label><input type="month" required></div>
+</div>
+<div class="buttons">
+<button type="button" id="prevBtn" onclick="navigate(-1)">Previous</button>
+<button type="button" id="nextBtn" onclick="navigate(1)">Next</button>
+</div>
+</form>
+</div>
+<script>
+   let current = 0;
+   const steps = document.querySelectorAll('.step');
+   function navigate(n) {
+       let currentInputs = steps[current].querySelectorAll('input[required]');
+       let valid = true;
+       if(n === 1) {
+           currentInputs.forEach(input => {
+               if(!input.checkValidity()) { input.reportValidity(); valid = false; }
+           });
+           if(!valid) return;
+       }
+       steps[current].classList.remove('active-step');
+       current += n;
+       if(current >= steps.length) { alert("Order Submitted!"); return; }
+       steps[current].classList.add('active-step');
+       document.getElementById('prevBtn').style.display = current === 0 ? 'none' : 'inline-block';
+       document.getElementById('nextBtn').innerText = current === steps.length - 1 ? 'Submit' : 'Next';
+   }
+</script>
+</body>
+</html>
