@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacy Checkout</title>
+<style>
+       :root {
+           --primary-color: #2e7d32; /* Pharmacy Green */
+           --bg-color: #f4f7f6;
+           --text-color: #333;
+           --border-color: #ccc;
+       }
+       body {
+           font-family: system-ui, -apple-system, sans-serif;
+           background-color: var(--bg-color);
+           color: var(--text-color);
+           display: flex;
+           justify-content: center;
+           align-items: center;
+           min-height: 100vh;
+           margin: 0;
+           padding: 20px;
+           box-sizing: border-box;
+       }
+       .checkout-container {
+           background: white;
+           padding: 30px;
+           border-radius: 10px;
+           box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+           width: 100%;
+           max-width: 500px;
+       }
+       /* Step Indicators */
+       .step-indicator {
+           display: flex;
+           justify-content: space-between;
+           margin-bottom: 30px;
+           padding: 0;
+           list-style: none;
+       }
+       .step-indicator li {
+           flex: 1;
+           text-align: center;
+           padding: 10px;
+           border-bottom: 3px solid var(--border-color);
+           color: #888;
+           font-weight: bold;
+           transition: all 0.3s ease;
+       }
+       .step-indicator li.active {
+           border-bottom-color: var(--primary-color);
+           color: var(--primary-color);
+       }
+       /* Form Steps */
+       .form-step {
+           display: none;
+       }
+       .form-step.active {
+           display: block;
+       }
+       .form-group {
+           margin-bottom: 15px;
+           display: flex;
+           flex-direction: column;
+       }
+       label {
+           margin-bottom: 5px;
+           font-weight: 500;
+       }
+       input {
+           padding: 10px;
+           border: 1px solid var(--border-color);
+           border-radius: 5px;
+           font-size: 16px;
+           width: 100%;
+           box-sizing: border-box;
+       }
+       input:focus {
+           outline: none;
+           border-color: var(--primary-color);
+       }
+       /* Buttons */
+       .btn-group {
+           display: flex;
+           justify-content: space-between;
+           margin-top: 25px;
+       }
+       button {
+           padding: 10px 20px;
+           border: none;
+           border-radius: 5px;
+           font-size: 16px;
+           cursor: pointer;
+           font-weight: bold;
+       }
+       .btn-prev {
+           background-color: #e0e0e0;
+           color: #333;
+       }
+       .btn-next {
+           background-color: var(--primary-color);
+           color: white;
+           margin-left: auto;
+       }
+       .btn-prev[style*="display: none"] ~ .btn-next {
+           margin-left: 0;
+           width: 100%;
+       }
+       .error-message {
+           color: #d32f2f;
+           font-size: 14px;
+           margin-top: 10px;
+           display: none;
+       }
+</style>
+</head>
+<body>
+<div class="checkout-container">
+<h2>Secure Checkout</h2>
+<ul class="step-indicator">
+<li class="active">Patient Details</li>
+<li>Shipping</li>
+<li>Payment</li>
+</ul>
+<form id="checkoutForm">
+<!-- Step 1 -->
+<div class="form-step active" id="step1">
+<div class="form-group">
+<label for="fname">First Name</label>
+<input type="text" id="fname" required>
+</div>
+<div class="form-group">
+<label for="lname">Last Name</label>
+<input type="text" id="lname" required>
+</div>
+<div class="form-group">
+<label for="prescription">Prescription ID (Optional)</label>
+<input type="text" id="prescription">
+</div>
+</div>
+<!-- Step 2 -->
+<div class="form-step" id="step2">
+<div class="form-group">
+<label for="address">Street Address</label>
+<input type="text" id="address" required>
+</div>
+<div class="form-group">
+<label for="city">City</label>
+<input type="text" id="city" required>
+</div>
+</div>
+<!-- Step 3 -->
+<div class="form-step" id="step3">
+<div class="form-group">
+<label for="card">Credit Card Number</label>
+<input type="text" id="card" pattern="\d{16}" placeholder="1234123412341234" required>
+</div>
+<div class="form-group">
+<label for="expiry">Expiry Date</label>
+<input type="month" id="expiry" required>
+</div>
+<div id="successMessage" style="display:none; color: var(--primary-color); font-weight: bold; text-align: center; margin-top: 15px;">
+               Order placed successfully!
+</div>
+</div>
+<div class="error-message" id="errorMsg">Please fill out all required fields correctly.</div>
+<div class="btn-group">
+<button type="button" class="btn-prev" id="prevBtn" style="display: none;" onclick="changeStep(-1)">Previous</button>
+<button type="button" class="btn-next" id="nextBtn" onclick="changeStep(1)">Next</button>
+</div>
+</form>
+</div>
+<script>
+   let currentStep = 0;
+   const steps = document.querySelectorAll(".form-step");
+   const indicators = document.querySelectorAll(".step-indicator li");
+   const prevBtn = document.getElementById("prevBtn");
+   const nextBtn = document.getElementById("nextBtn");
+   const form = document.getElementById("checkoutForm");
+   const errorMsg = document.getElementById("errorMsg");
+   function showStep(stepIndex) {
+       steps.forEach((step, index) => {
+           step.classList.toggle("active", index === stepIndex);
+           indicators[index].classList.toggle("active", index <= stepIndex);
+       });
+       if (stepIndex === 0) {
+           prevBtn.style.display = "none";
+       } else {
+           prevBtn.style.display = "inline-block";
+       }
+       if (stepIndex === steps.length - 1) {
+           nextBtn.textContent = "Submit Order";
+       } else {
+           nextBtn.textContent = "Next";
+       }
+   }
+   function validateStep() {
+       const inputs = steps[currentStep].querySelectorAll("input[required]");
+       let isValid = true;
+       inputs.forEach(input => {
+           if (!input.checkValidity()) {
+               input.reportValidity();
+               isValid = false;
+           }
+       });
+       return isValid;
+   }
+   function changeStep(n) {
+       errorMsg.style.display = "none";
+       if (n === 1 && !validateStep()) {
+           errorMsg.style.display = "block";
+           return;
+       }
+       if (currentStep === steps.length - 1 && n === 1) {
+           document.getElementById("successMessage").style.display = "block";
+           nextBtn.style.display = "none";
+           prevBtn.style.display = "none";
+           return;
+       }
+       currentStep += n;
+       showStep(currentStep);
+   }
+</script>
+</body>
+</html>
